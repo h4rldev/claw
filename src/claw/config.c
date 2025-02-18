@@ -25,7 +25,7 @@
 #include <config.h>
 #include <file.h>
 
-#define DEFAULT_PATH "/config/"
+#define DEFAULT_PATH "/./"
 #define DEFAULT_LEVEL 6
 
 static int handle_parse_err(char *categ, char *field) {
@@ -39,7 +39,7 @@ static int handle_parse_err(char *categ, char *field) {
 int init_config(Config *config) {
   Config local_config;
   networkConfig local_network;
-  sslConfig local_ssl; // remember SSL actually means TLS
+  sslConfig local_ssl; // remember by SSL we actually mean TLS
   compressionConfig local_compression;
 
   // Max length for ipv4 is 15 characters, adding 1 for nullterm.
@@ -58,9 +58,9 @@ int init_config(Config *config) {
   local_ssl.cert_path = NULL; // NULL by default
   local_ssl.key_path = NULL;  // writes as "" to file anyway.
 
-  // Default site root is ./site/, can be relative and canonical path
+  // Default hook endpoint is /hook
   local_config.listen_path = (char *)malloc(1024);
-  strlcpy(local_config.listen_path, "/hook/", 1024);
+  strlcpy(local_config.listen_path, "/hook", 1024);
 
   local_config.log_type = Both; // Console, File, Both are the available options
   local_config.network = local_network;
@@ -93,7 +93,7 @@ int write_config(Config *config) {
     }
   }
 
-  strlcat(path, "config.json", 1024);
+  strlcat(path, ".claw-config.json", 1024);
 
   if (config == NULL)
     return -1;
@@ -208,7 +208,7 @@ int read_config(Config *config) {
     return -1;
   }
 
-  snprintf(path, 1024, "%s%sconfig.json", cwd, default_path);
+  snprintf(path, 1024, "%s%s.claw-config.json", cwd, default_path);
   free(cwd);
 
   if (!path_exist(path)) {

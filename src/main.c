@@ -185,10 +185,10 @@ int main(int argc, char **argv) {
 
   time_t time_container = time(NULL);
   struct tm *time = localtime(&time_container);
-  char log_fname[28] = {0};
+  char log_fname[33] = {0};
 
-  snprintf(log_fname, 28, "./logs/toast-%d-%02d-%02d.log", time->tm_year + 1900,
-           time->tm_mon + 1, time->tm_mday);
+  snprintf(log_fname, 33, "./.claw-logs/claw-%d-%02d-%02d.log",
+           time->tm_year + 1900, time->tm_mon + 1, time->tm_mday);
 
   if (read_config(&server_config) != 0) {
     init_config(&server_config);
@@ -202,16 +202,16 @@ int main(int argc, char **argv) {
 
   switch (server_config.log_type) {
   case Both:
-    if (path_exist("./logs/") == false)
-      make_dir("./logs/");
+    if (path_exist("./.claw-logs/") == false)
+      make_dir("./.claw-logs/");
     log2file =
         h2o_access_log_open_handle(log_fname, NULL, H2O_LOGCONF_ESCAPE_APACHE);
     logfh = h2o_access_log_open_handle("/dev/stdout", NULL,
                                        H2O_LOGCONF_ESCAPE_APACHE);
     break;
   case File:
-    if (path_exist("./logs/") == false)
-      make_dir("./logs/");
+    if (path_exist("./.claw-logs/") == false)
+      make_dir("./.claw-logs/");
     log2file =
         h2o_access_log_open_handle(log_fname, NULL, H2O_LOGCONF_ESCAPE_APACHE);
     break;
@@ -228,7 +228,7 @@ int main(int argc, char **argv) {
   signal(SIGPIPE, SIG_IGN);
 
   if (parse_args(&argc, &argv, &server_config) != 0) {
-    fprintf(stderr, "toast: failed parsing args, something is very wrong..\n");
+    fprintf(stderr, "claw: failed parsing args, something is very wrong..\n");
     free_config(&server_config);
     return -1;
   }
@@ -238,8 +238,6 @@ int main(int argc, char **argv) {
 
   hostconf = h2o_config_register_host(
       &config, h2o_iovec_init(H2O_STRLIT("default")), 65535);
-
-  printf("listen_path: %s\n", server_config.listen_path);
 
   pathconf =
       register_handler(hostconf, server_config.listen_path, hook_listener);
@@ -288,11 +286,11 @@ NotCompress:
 
   accept_ctx.ctx = &ctx;
   accept_ctx.hosts = config.hosts;
-  config.server_name = h2o_iovec_init(H2O_STRLIT("toast"));
+  config.server_name = h2o_iovec_init(H2O_STRLIT("claw"));
 
   if (create_listener(server_config.network.ip, server_config.network.port) !=
       0) {
-    fprintf(stderr, "failed to listen to 127.0.0.1:%u:%s\n",
+    fprintf(stderr, "claw: failed to listen to 127.0.0.1:%u:%s\n",
             server_config.network.port, strerror(errno));
     goto Error;
   }

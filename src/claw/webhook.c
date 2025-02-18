@@ -3,7 +3,7 @@
 #include <jansson.h>
 #include <webhook.h>
 
-int parse_json(const char *json, size_t json_len, struct json_t **obj) {
+static int parse_json(const char *json, size_t json_len, struct json_t **obj) {
   json_t *root = json_object();
   json_error_t error;
 
@@ -35,20 +35,26 @@ int hook_listener(h2o_handler_t *self, h2o_req_t *req) {
     struct json_t *json_obj;
     if (parse_json(req->entity.base, req->entity.len, &json_obj) != 0)
       return -1;
+
     char *json_dumpb = json_dumps(json_obj, JSON_INDENT(2));
-    fprintf(stderr, "hook_listener: json_obj: %s\n", json_dumpb);
+    fprintf(stderr, "claw: hook_listener: json parsed: %s\n", json_dumpb);
+    h2o_iovec_t body = h2o_strdup(&req->pool, H2O_STRLIT("Accepted"));
 
     json_decref(json_obj);
     free(json_dumpb);
 
-    req->res.status = 200;
-    req->res.reason = "OK";
+    req->res.status = 202;
+    req->res.reason = "Accepted";
 
     h2o_add_header(&req->pool, &req->res.headers, H2O_TOKEN_CONTENT_TYPE, NULL,
                    H2O_STRLIT("text/plain; charset=utf-8"));
+    h2o_add_header(&req->pool, &req->res.headers, H2O_TOKEN_CONTENT_LENGTH,
+                   NULL, H2O_STRLIT("8"));
     h2o_start_response(req, &generator);
-    h2o_send(req, &req->entity, 1, 1);
+    h2o_send(req, &body, 1, 1);
+
     return 0;
   }
+
   return -1;
 }

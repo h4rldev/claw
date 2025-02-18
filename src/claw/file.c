@@ -111,6 +111,14 @@ char *read_file_from_fd(FILE *file) {
   return buf;
 }
 
+int change_dir(const char *path) {
+  if (chdir(path) == -1) {
+    fprintf(stderr, "Failed to change directory");
+    return -1;
+  }
+  return 0;
+}
+
 char *read_file(const char *path) {
   size_t file_size = 0;
   FILE *fp = fopen(path, "r");
